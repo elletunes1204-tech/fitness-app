@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="My Fitness"/>
+<title>My Fitness App</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green: #7ab87a;
+    --green-light: #edf7ed;
+    --sage: #5db89a;
+    --cream: #faf7f2;
+    --card: #ffffff;
+    --border: #ede8e0;
+    --muted: #b0a898;
+    --text: #1a1a1a;
+    --sub: #888;
+    --orange: #e8836a;
+    --gold: #d4a843;
+    --purple: #8b6bb1;
+    --nav-h: 68px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--cream); font-family: 'DM Sans', sans-serif; color: var(--text); overscroll-behavior: none; }
+  body { display: flex; flex-direction: column; }
+
+  /* SCREENS */
+  .screen { display: none; flex: 1; overflow-y: auto; padding: 24px 16px calc(var(--nav-h) + var(--safe-bottom) + 16px); max-width: 520px; margin: 0 auto; width: 100%; }
+  .screen.active { display: block; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(250,247,242,0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: var(--safe-bottom); }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; gap: 3px; cursor: pointer; background: none; border: none; color: #ccc; transition: color 0.15s; }
+  .nav-btn.active { color: var(--text); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn span { font-size: 10px; letter-spacing: 0.5px; font-weight: 500; }
+
+  /* CARDS */
+  .card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .section-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+  /* HEADER */
+  .page-header { margin-bottom: 24px; }
+  .page-eyebrow { font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 8vw, 40px); font-weight: 600; line-height: 1.1; }
+  .page-title em { font-style: italic; color: var(--green); }
+  .page-sub { font-size: 13px; color: #aaa; margin-top: 6px; font-weight: 300; }
+
+  /* PILL SELECTORS */
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .pill { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1.5px solid #d8d0c4; background: none; cursor: pointer; color: var(--sub); transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .pill.active { background: var(--text); border-color: var(--text); color: white; }
+
+  /* TABS */
+  .tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { flex: 1; font-size: 12px; padding: 8px 4px; border: none; background: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+
+  /* PROGRESS BAR */
+  .prog-bar { height: 5px; background: #ede8e0; border-radius: 3px; overflow: hidden; margin: 6px 0 16px; }
+  .prog-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; background: linear-gradient(90deg, var(--green), var(--sage)); }
+
+  /* EXERCISE ROWS */
+  .ex-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #f0ebe4; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; background: #fdfdfc; }
+  .ex-row.done { background: #f5fbf5; border-color: #d4ead4; opacity: 0.65; }
+  .checkbox { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid #c8bfb0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.15s; background: white; }
+  .checkbox.checked { background: var(--green); border-color: var(--green); }
+  .ex-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .ex-row.done .ex-name { color: #7ab87a; }
+  .ex-detail { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+  /* ROUND DOTS */
+  .round-dot { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #d0c8bc; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; font-weight: 500; color: #bbb; transition: all 0.15s; }
+  .round-dot.done { background: var(--green); border-color: var(--green); color: white; }
+
+  /* INGREDIENT CHIPS */
+  .chip { display: inline-block; background: #f5f0ea; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #5a5248; margin: 3px; }
+  .chip-green { background: var(--green-light); color: #4a7a4a; }
+
+  /* STEP ROWS */
+  .step-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: #f0ebe4; font-size: 11px; font-weight: 500; color: #999; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-text { font-size: 13px; color: #444; line-height: 1.55; flex: 1; }
+
+  /* TIMER BTN */
+  .timer-btn { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 12px; border: 1px solid #d0c8bc; background: #f5f0ea; color: #888; font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .timer-btn.running { border-color: var(--gold); background: #fdf6e3; color: #9a7a1a; }
+  .timer-btn.complete { border-color: var(--green); background: var(--green-light); color: #4a8a4a; }
+
+  /* SHOPPING */
+  .shop-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f5f0ea; cursor: pointer; }
+  .shop-row:last-child { border-bottom: none; }
+  .shop-box { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid #c8bfb0; background: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
+  .shop-row.done .shop-name { text-decoration: line-through; color: #bbb; }
+
+  /* STAT BOX */
+  .stat-box { flex: 1; background: white; border-radius: 14px; padding: 16px; border: 1px solid var(--border); text-align: center; }
+  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+
+  /* CARDIO BTNS */
+  .cardio-row { display: flex; gap: 8px; }
+  .cardio-btn { flex: 1; background: none; border: 1px solid #d0c8bc; border-radius: 10px; padding: 10px 6px; font-size: 13px; cursor: pointer; color: var(--sub); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .cardio-btn.active { background: #eef6ee; border-color: var(--green); color: #3a7a3a; }
+
+  /* PUSHUP */
+  .pushup-step { padding: 7px 16px; border-radius: 20px; font-size: 13px; border: 1.5px solid #d0c8bc; cursor: pointer; color: var(--sub); background: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .pushup-step.current { border-color: var(--gold); color: #9a7a1a; background: #fdf6e3; }
+  .pushup-step.pdone { border-color: #c4dac4; color: #5a8a5a; }
+
+  /* FILTER BTNS */
+  .filter-btn { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 1.5px solid #d8d0c4; background: none; cursor: pointer; color: var(--sub); transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .filter-btn.active { background: var(--text); border-color: var(--text); color: white; }
+
+  /* CAT BADGE */
+  .cat-badge { font-size: 10px; background: #f0ece4; color: #999; padding: 2px 7px; border-radius: 10px; }
+
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .small-btn { background: none; border: 1px solid #d0c8bc; color: #aaa; font-size: 11px; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ WORKOUT SCREEN -->
+<div class="screen active" id="screen-workout">
+  <div class="page-header">
+    <div class="page-eyebrow">At-Home Workout</div>
+    <h1 class="page-title">Core + Lower<br><em>Beginner Plan</em></h1>
+    <p class="page-sub">15 min cardio · 15 min strength</p>
+  </div>
+
+  <!-- Day selector -->
+  <div class="section-label">This Week</div>
+  <div class="pill-row" id="day-pills"></div>
+
+  <div id="workout-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ MEAL PLAN SCREEN -->
+<div class="screen" id="screen-meal">
+  <div class="page-header">
+    <div class="page-eyebrow">Muscle Gain</div>
+    <h1 class="page-title">5-Day<br><em>Meal Plan</em></h1>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchMealTab('plan',this)">Daily Plan</button>
+    <button class="tab" onclick="switchMealTab('prep',this)">Sunday Prep</button>
+    <button class="tab" onclick="switchMealTab('goals',this)">Goals</button>
+  </div>
+  <div id="meal-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SHOPPING SCREEN -->
+<div class="screen" id="screen-shop">
+  <div class="page-header">
+    <div class="page-eyebrow">5-Day Meal Prep</div>
+    <h1 class="page-title">Muscle Gain<br><em>Shopping List</em></h1>
+    <p class="page-sub">Organic · Whole foods · High protein</p>
+  </div>
+  <div id="shop-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchScreen('workout',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+    <span>Workout</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('meal',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M6 13.121v3.615a2.625 2.625 0 002.625 2.625h6.75A2.625 2.625 0 0018 16.736v-3.615M6 13.121c.995.218 2.033.332 3.092.332h5.816c1.059 0 2.097-.114 3.092-.332"/></svg>
+    <span>Meals</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('shop',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
+    <span>Shop</span>
+  </button>
+</nav>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+const S = {
+  workout: { activeDay: 0, checked: {}, rounds: {1:false,2:false,3:false}, cardio: 0, pushup: 0, phase: 0 },
+  meal: { activeDay: 0, tab: 'plan', prepDone: {} },
+  shop: { checked: {}, filter: 'all' },
+};
+
+// Persist to localStorage
+function save() { try { localStorage.setItem('fitness-app', JSON.stringify(S)); } catch(e){} }
+function load() { try { const d = localStorage.getItem('fitness-app'); if(d) { const p = JSON.parse(d); Object.assign(S.workout, p.workout||{}); Object.assign(S.meal, p.meal||{}); Object.assign(S.shop, p.shop||{}); } } catch(e){} }
+load();
+
+// ══════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════
+const WEEK = [
+  {day:'Mon',upper:false},{day:'Tue',upper:true},{day:'Wed',rest:true},
+  {day:'Thu',upper:false},{day:'Fri',upper:true},{day:'Sat',upper:false},{day:'Sun',rest:true}
+];
+
+const LOWER = [
+  {name:'Squats',reps:'12–15 reps',note:'Chest up, knees over toes'},
+  {name:'Glute Bridges',reps:'15 reps',note:'Squeeze at the top'},
+  {name:'Reverse Lunges',reps:'8–10 each leg',note:'Step back, lower knee to floor'},
+  {name:'Romanian Deadlifts',reps:'10–12 reps',note:'Hinge at hips, soft knees'},
+  {name:'Plank',reps:'20–40 sec',note:'Brace core, don\'t sag'},
+  {name:'Leg Raises',reps:'10–15 reps',note:'Lower back stays pressed down'},
+];
+
+const UPPER = [
+  {name:'Wall Push-Ups',reps:'8–10 reps',note:'Chest to wall, controlled tempo'},
+  {name:'Bent-Over Rows',reps:'10 reps',note:'Hinge forward, pull elbows back'},
+  {name:'Shoulder Raises',reps:'10 reps',note:'Raise to shoulder height only'},
+];
+
+const CARDIOS = ['Incline Walk','Jog','Intervals'];
+const CARDIO_TIPS = ['Steady 4–6% incline. Low impact, high burn.','Easy conversational pace. Build aerobic base.','30s fast / 60s slow × 8. Boosts metabolism.'];
+const PUSHUPS = ['Wall','Incline','Knees','Full'];
+const PHASES = [
+  {weeks:'Wks 1–2',label:'Learn Form',desc:'Focus on technique over reps',color:'#7ecbae'},
+  {weeks:'Wks 3–4',label:'Increase Reps',desc:'Push toward higher end of rep ranges',color:'#f5c542'},
+  {weeks:'Wks 5+',label:'Add Difficulty',desc:'Add weight, resistance, or harder variations',color:'#e07b5f'},
+];
+
+const SMOOTHIE_BASE = ['1 cup almond milk','1 banana','1 scoop protein powder','1 tbsp chia seeds','2 tbsp peanut butter','½ cup oats'];
+const MEAL_DAYS = [
+  {label:'Day 1',smoothie:{name:'Mixed Berry Protein',emoji:'🫐',add:['1 cup frozen mixed berries','1 tbsp flaxseed (optional)'],color:'#8b6bb1'},lunch:'chicken',addon:'3 eggs (scrambled or boiled)'},
+  {label:'Day 2',smoothie:{name:'Mixed Berry Protein',emoji:'🫐',add:['1 cup frozen mixed berries','1 tbsp flaxseed (optional)'],color:'#8b6bb1'},lunch:'chicken',addon:'Greek yogurt bowl (add honey or berries)'},
+  {label:'Day 3',smoothie:{name:'Berry Yogurt',emoji:'🍓',add:['½ cup Greek yogurt','1 cup mixed berries'],note:'Thicker + more protein',color:'#c46b7a'},lunch:'chicken',addon:'Peanut butter toast'},
+  {label:'Day 4',smoothie:{name:'Berry Green',emoji:'🥬',add:['1 cup mixed berries','Handful of spinach'],note:"You won't taste the spinach",color:'#5a9e72'},lunch:'salmon',addon:'3 eggs (scrambled or boiled)'},
+  {label:'Day 5',smoothie:{name:'Strawberry PB',emoji:'🍓',add:['1 cup strawberries','Extra 1 tbsp peanut butter','Dash cinnamon'],color:'#d4714a'},lunch:'salmon',addon:'Greek yogurt bowl (add honey or berries)'},
+];
+
+const CHICKEN_STEPS = [
+  {text:'Preheat oven to 400°F.'},
+  {text:'Cube sweet potatoes & chop broccoli into florets.'},
+  {text:'Toss veggies with olive oil, salt, pepper. Roast 25–30 min.',mins:28},
+  {text:'Cook quinoa: 1.5 cups + 3 cups water. Boil, then simmer 15 min.',mins:15},
+  {text:'Season chicken with salt, pepper, garlic. Cook 6–7 min per side OR bake 20 min.',mins:20},
+  {text:'Portion into 3 containers: chicken + quinoa + veggies.'},
+  {text:'Add avocado + lemon squeeze when eating.'},
+];
+const SALMON_STEPS = [
+  {text:'Season salmon with salt and pepper.'},
+  {text:'Bake at 400°F for 12–15 min.',mins:13},
+  {text:'Chop tomatoes and cucumbers. Keep greens separate for freshness.'},
+  {text:'Assemble day-of: greens + veggies + salmon + avocado + olive oil + balsamic + seeds.'},
+];
+const PREP_TASKS = ['Cook chicken (season + bake/pan)','Cook quinoa (1.5 cups dry)','Roast sweet potatoes + broccoli','Cook or prep salmon for Day 4–5','Portion 5 lunches into containers','Pre-bag smoothie ingredients (optional)'];
+
+const SHOP_CATS = [
+  {id:'protein',label:'Protein',emoji:'🥩',color:'#e8836a',items:[
+    {id:'p1',name:'Chicken breast',detail:'2 lbs, organic'},{id:'p2',name:'Salmon',detail:'2 fillets, organic'},
+    {id:'p3',name:'Eggs',detail:'1 dozen'},{id:'p4',name:'Greek yogurt',detail:'large tub'},{id:'p5',name:'Protein powder',detail:''},
+  ]},
+  {id:'carbs',label:'Carbs',emoji:'🌾',color:'#d4a843',items:[
+    {id:'c1',name:'Oats',detail:'1 container'},{id:'c2',name:'Quinoa',detail:'1 bag'},
+    {id:'c3',name:'Sweet potatoes',detail:'3–4'},{id:'c4',name:'Bananas',detail:'5–7'},
+    {id:'c5',name:'Frozen berries',detail:'1 bag'},{id:'c6',name:'Mango or pineapple',detail:'1 bag, frozen or fresh'},
+  ]},
+  {id:'fats',label:'Fats',emoji:'🥑',color:'#7ab87a',items:[
+    {id:'f1',name:'Peanut or almond butter',detail:''},{id:'f2',name:'Olive oil',detail:''},
+    {id:'f3',name:'Avocados',detail:'4–5'},{id:'f4',name:'Chia seeds',detail:''},
+    {id:'f5',name:'Hemp seeds',detail:'optional'},{id:'f6',name:'Pumpkin seeds or walnuts',detail:''},
+  ]},
+  {id:'veggies',label:'Vegetables',emoji:'🥦',color:'#5db89a',items:[
+    {id:'v1',name:'Spinach',detail:'large container, organic'},{id:'v2',name:'Broccoli',detail:'2 heads, organic'},
+    {id:'v3',name:'Mixed greens',detail:'1 large container, organic'},{id:'v4',name:'Cherry tomatoes',detail:''},
+    {id:'v5',name:'Cucumbers',detail:''},{id:'v6',name:'Garlic',detail:''},{id:'v7',name:'Ginger',detail:''},
+  ]},
+  {id:'extras',label:'Extras',emoji:'🫙',color:'#a08cc8',items:[
+    {id:'e1',name:'Lemon',detail:''},{id:'e2',name:'Balsamic vinegar',detail:''},
+    {id:'e3',name:'Cinnamon',detail:''},{id:'e4',name:'Salt & pepper',detail:''},
+    {id:'e5',name:'Basic spices',detail:'paprika, cumin'},
+  ]},
+  {id:'optional',label:'Optional',emoji:'✨',color:'#c89a6a',items:[
+    {id:'o1',name:'Coconut flakes',detail:'if budget allows'},{id:'o2',name:'Honey',detail:'if budget allows'},
+  ]},
+];
+
+const ALL_ITEMS = SHOP_CATS.flatMap(c => c.items);
+
+// ══════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════
+let currentScreen = 'workout';
+function switchScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  btn.classList.add('active');
+  currentScreen = name;
+  render();
+}
+
+// ══════════════════════════════════════════════════════════
+// TIMERS
+// ══════════════════════════════════════════════════════════
+const timers = {};
+function startTimer(id, mins) {
+  if (timers[id]) { clearInterval(timers[id].iv); delete timers[id]; renderWorkoutContent(); renderMealContent(); return; }
+  timers[id] = { secs: mins*60, running: true };
+  timers[id].iv = setInterval(() => {
+    timers[id].secs--;
+    if (timers[id].secs <= 0) { clearInterval(timers[id].iv); timers[id].done = true; }
+    renderWorkoutContent(); renderMealContent();
+  }, 1000);
+  renderWorkoutContent(); renderMealContent();
+}
+function timerHTML(id, mins) {
+  const t = timers[id];
+  if (!t) return `<button class="timer-btn" onclick="startTimer('${id}',${mins})">⏱ ${mins} min</button>`;
+  if (t.done) return `<button class="timer-btn complete" onclick="startTimer('${id}',${mins})">✓ Done</button>`;
+  const m = Math.floor(t.secs/60), s = t.secs%60;
+  return `<button class="timer-btn running" onclick="startTimer('${id}',${mins})">⏱ ${m}:${String(s).padStart(2,'0')}</button>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER WORKOUT
+// ══════════════════════════════════════════════════════════
+function renderWorkout() {
+  // Pills
+  const pills = document.getElementById('day-pills');
+  pills.innerHTML = WEEK.map((d,i) => `
+    <button class="pill${S.workout.activeDay===i?' active':''}" onclick="setDay(${i})">${d.day}${d.upper?' +':''}</button>
+  `).join('');
+  renderWorkoutContent();
+}
+
+function renderWorkoutContent() {
+  const el = document.getElementById('workout-content');
+  const d = WEEK[S.workout.activeDay];
+
+  if (d.rest) {
+    el.innerHTML = `<div class="card" style="text-align:center;padding:36px 0">
+      <div style="font-size:40px;margin-bottom:10px">🌿</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:#999">Rest Day</div>
+      <div style="font-size:13px;color:#bbb;margin-top:6px">Recovery is part of the plan</div>
+    </div>`;
+    return;
+  }
+
+  const dayIdx = S.workout.activeDay;
+  const totalEx = LOWER.length + (d.upper ? UPPER.length : 0);
+  const doneEx = Object.keys(S.workout.checked).filter(k=>S.workout.checked[k]&&k.startsWith('e'+dayIdx+'-')).length;
+  const pct = totalEx ? Math.round(doneEx/totalEx*100) : 0;
+
+  const exRow = (ex, key) => {
+    const done = !!S.workout.checked[key];
+    return `<div class="ex-row${done?' done':''}" onclick="toggleEx('${key}')">
+      <div class="checkbox${done?' checked':''}">${done?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+      <div><div class="ex-name">${ex.name}</div><div class="ex-detail">${ex.reps} · ${ex.note}</div></div>
+    </div>`;
+  };
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:4px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px">${d.day}'s Workout</div>
+        <button class="small-btn" onclick="resetDay()">Reset</button>
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-bottom:4px">${pct}% complete</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+        <div style="font-size:10px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase">Rounds</div>
+        ${[1,2,3].map(r=>`<div class="round-dot${S.workout.rounds[r]?' done':''}" onclick="toggleRound(${r})">${r}</div>`).join('')}
+      </div>
+      <div class="section-label">Lower Body + Core</div>
+      ${LOWER.map((ex,i)=>exRow(ex,'e'+dayIdx+'-l'+i)).join('')}
+      ${d.upper?`<div class="section-label" style="margin-top:16px">Light Upper Body</div>${UPPER.map((ex,i)=>exRow(ex,'e'+dayIdx+'-u'+i)).join('')}`:''}
+    </div>
+
+    <div class="card">
+      <div class="section-label">15 Min Cardio</div>
+      <div class="cardio-row">
+        ${CARDIOS.map((c,i)=>`<button class="cardio-btn${S.workout.cardio===i?' active':''}" onclick="setCardio(${i})">${c}</button>`).join('')}
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-top:10px">${CARDIO_TIPS[S.workout.cardio]}</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Push-Up Progression</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${PUSHUPS.map((p,i)=>`<button class="pushup-step${i===S.workout.pushup?' current':i<S.workout.pushup?' pdone':''}" onclick="setPushup(${i})">${i<S.workout.pushup?'✓ ':''}${p}</button>`).join('')}
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-top:10px">Move forward when 3×10 feels easy.</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Current Phase</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        ${PHASES.map((p,i)=>`<button style="border:none;border-radius:6px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;opacity:${S.workout.phase===i?1:0.35};background:${p.color};color:#0f0f0f;transition:opacity 0.15s" onclick="setPhase(${i})">${p.weeks}</button>`).join('')}
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:4px">${PHASES[S.workout.phase].label}</div>
+      <div style="font-size:13px;color:#888">${PHASES[S.workout.phase].desc}</div>
+    </div>
+
+    <div style="border:1px solid #e0d8d0;border-radius:12px;padding:14px;text-align:center;margin-bottom:8px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:14px;color:#888;font-style:italic">"Stay consistent and increase difficulty slowly."</div>
+    </div>
+  `;
+}
+
+function setDay(i) { S.workout.activeDay=i; S.workout.rounds={1:false,2:false,3:false}; save(); renderWorkout(); }
+function toggleEx(k) { S.workout.checked[k]=!S.workout.checked[k]; save(); renderWorkoutContent(); }
+function toggleRound(r) { S.workout.rounds[r]=!S.workout.rounds[r]; save(); renderWorkoutContent(); }
+function setCardio(i) { S.workout.cardio=i; save(); renderWorkoutContent(); }
+function setPushup(i) { S.workout.pushup=i; save(); renderWorkoutContent(); }
+function setPhase(i) { S.workout.phase=i; save(); renderWorkoutContent(); }
+function resetDay() {
+  const dayIdx = S.workout.activeDay;
+  Object.keys(S.workout.checked).forEach(k=>{ if(k.startsWith('e'+dayIdx+'-')) delete S.workout.checked[k]; });
+  S.workout.rounds={1:false,2:false,3:false}; save(); renderWorkoutContent();
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER MEAL
+// ══════════════════════════════════════════════════════════
+function switchMealTab(tab, btn) {
+  S.meal.tab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderMealContent();
+}
+
+function renderMeal() { renderMealContent(); }
+
+function renderMealContent() {
+  const el = document.getElementById('meal-content');
+  if (S.meal.tab === 'plan') {
+    const day = MEAL_DAYS[S.meal.activeDay];
+    el.innerHTML = `
+      <div class="pill-row">
+        ${MEAL_DAYS.map((d,i)=>`<button class="pill${S.meal.activeDay===i?' active':''}" onclick="setMealDay(${i})">${d.label}</button>`).join('')}
+      </div>
+
+      <div class="card">
+        <div class="section-label">🥤 Breakfast Smoothie</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:22px">${day.smoothie.emoji}</span>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600">${day.smoothie.name}</div>
+            ${day.smoothie.note?`<div style="font-size:11px;color:#aaa">${day.smoothie.note}</div>`:''}
+          </div>
+        </div>
+        <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">BASE</div>
+        <div style="margin-bottom:12px">${SMOOTHIE_BASE.map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+        <div style="font-size:10px;letter-spacing:2px;color:#7ab87a;margin-bottom:6px">ADD FOR TODAY</div>
+        <div>${day.smoothie.add.map(i=>`<span class="chip chip-green">${i}</span>`).join('')}</div>
+        <div style="margin-top:12px;font-size:12px;color:#aaa;border-top:1px solid #f0ebe4;padding-top:10px">⚡ Blend 30–45 seconds until smooth</div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">🍱 Lunch</div>
+        ${day.lunch==='chicken' ? `
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">Chicken Quinoa Bowl</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:14px">Prepped Sunday · Add avocado + lemon when eating</div>
+          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">INGREDIENTS (for 3 days)</div>
+          <div style="margin-bottom:14px">${['2 lbs chicken breast','1.5 cups dry quinoa','3 sweet potatoes','2 heads broccoli','2 tbsp olive oil','Salt, pepper, garlic','½ avocado + lemon (day of)'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
+          ${CHICKEN_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('ch'+i,s.mins):''}</div></div>`).join('')}
+        ` : `
+          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">Salmon Avocado Salad</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:14px">Assemble day-of · Keep greens separate</div>
+          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">INGREDIENTS (for 2 days)</div>
+          <div style="margin-bottom:14px">${['2 salmon fillets','Mixed greens','Cherry tomatoes','Cucumber','2 avocados','Olive oil + balsamic','Pumpkin seeds or walnuts'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
+          ${SALMON_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('sa'+i,s.mins):''}</div></div>`).join('')}
+        `}
+      </div>
+
+      <div class="card">
+        <div class="section-label">➕ Daily Add-on — Don't Skip</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:17px">${day.addon}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:6px">Or swap: eggs · Greek yogurt · PB toast</div>
+      </div>
+    `;
+  } else if (S.meal.tab === 'prep') {
+    const done = Object.values(S.meal.prepDone).filter(Boolean).length;
+    el.innerHTML = `
+      <div class="card">
+        <div class="section-label">📅 Sunday Batch Prep</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:#666;margin-bottom:16px">1–2 hours → 5 days sorted</div>
+        <div class="flex-between" style="margin-bottom:16px">
+          <div style="font-size:13px;color:#888"><span style="font-weight:500;color:#1a1a1a">${done}</span> / ${PREP_TASKS.length} tasks done</div>
+          <button class="small-btn" onclick="clearPrep()">Reset</button>
+        </div>
+        ${PREP_TASKS.map((t,i)=>`<div class="shop-row${S.meal.prepDone[i]?' done':''}" onclick="togglePrep(${i})">
+          <div class="shop-box" style="${S.meal.prepDone[i]?'background:var(--green);border-color:var(--green)':''}">${S.meal.prepDone[i]?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+          <div class="shop-name" style="font-size:14px;color:${S.meal.prepDone[i]?'#bbb':'#333'}">${t}</div>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-label">🧊 Storage Tips</div>
+        ${[['Chicken + quinoa + veggies','Fridge up to 4 days'],['Salmon','Fridge 2 days — bake fresh if possible'],['Greens + tomatoes','Keep separate, dress day-of'],['Smoothie bags','Freeze portioned, blend fresh']].map(([item,tip],i,a)=>`
+          <div style="display:flex;justify-content:space-between;padding:9px 0;${i<a.length-1?'border-bottom:1px solid #f5f0ea':''}">
+            <div style="font-size:13px;color:#333">${item}</div>
+            <div style="font-size:12px;color:#aaa;text-align:right;max-width:48%">${tip}</div>
+          </div>`).join('')}
+      </div>
+    `;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <div class="stat-box"><div class="stat-num" style="color:var(--orange)">2,100</div><div class="stat-label">Min cal/day</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--sage)">120g</div><div class="stat-label">Min protein/day</div></div>
+      </div>
+      <div class="card">
+        <div class="section-label">Protein Breakdown</div>
+        ${[['Smoothie','~30g','#8b6bb1'],['Chicken or Salmon','~40–50g','#e8836a'],['Daily Add-on','~15–20g','#d4a843'],['Total','~120–130g','#5db89a']].map(([l,v,c],i,a)=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<a.length-1?'border-bottom:1px solid #f5f0ea':''}">
+            <div style="font-size:13px;color:${i===3?'#1a1a1a':'#666'};font-weight:${i===3?500:400}">${l}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:${c}">${v}</div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-label">The Rule</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:#666;line-height:1.5">"Eat consistently and<br>don't under-portion."</div>
+      </div>
+    `;
+  }
+}
+
+function setMealDay(i) { S.meal.activeDay=i; save(); renderMealContent(); }
+function togglePrep(i) { S.meal.prepDone[i]=!S.meal.prepDone[i]; save(); renderMealContent(); }
+function clearPrep() { S.meal.prepDone={}; save(); renderMealContent(); }
+
+// ══════════════════════════════════════════════════════════
+// RENDER SHOPPING
+// ══════════════════════════════════════════════════════════
+function renderShop() {
+  const el = document.getElementById('shop-content');
+  const total = ALL_ITEMS.length;
+  const done = Object.values(S.shop.checked).filter(Boolean).length;
+  const pct = Math.round(done/total*100);
+
+  const filtered = (cat) => {
+    if (S.shop.filter==='all') return cat.items;
+    if (S.shop.filter==='remaining') return cat.items.filter(i=>!S.shop.checked[i.id]);
+    return cat.items.filter(i=>S.shop.checked[i.id]);
+  };
+
+  const cats = SHOP_CATS.map(c=>({...c, items:filtered(c)})).filter(c=>c.items.length>0);
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:4px">
+        <div style="font-size:13px;color:#888"><span style="font-weight:500;color:#1a1a1a;font-size:15px">${done}</span> / ${total} items grabbed</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:12px;color:#b0a898">${pct}%</span>
+          <button class="small-btn" onclick="clearShop()">Reset</button>
+        </div>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="filter-btn${S.shop.filter==='all'?' active':''}" onclick="setFilter('all')">All</button>
+        <button class="filter-btn${S.shop.filter==='remaining'?' active':''}" onclick="setFilter('remaining')">Remaining (${total-done})</button>
+        <button class="filter-btn${S.shop.filter==='done'?' active':''}" onclick="setFilter('done')">Got it (${done})</button>
+      </div>
+    </div>
+    ${cats.length===0?`<div class="card" style="text-align:center;padding:40px 0;font-family:'Cormorant Garamond',serif;font-size:18px;color:#bbb;font-style:italic">${S.shop.filter==='done'?'Nothing checked off yet.':'All items grabbed — great work! 🎉'}</div>`:''}
+    ${cats.map(cat=>{
+      const catDone = cat.items.filter(i=>S.shop.checked[i.id]).length;
+      return `<div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <span style="font-size:18px">${cat.emoji}</span>
+          <div style="width:8px;height:8px;border-radius:50%;background:${cat.color};flex-shrink:0"></div>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">${cat.label}</span>
+          <span class="cat-badge">${catDone}/${cat.items.length}</span>
+        </div>
+        ${cat.items.map(item=>{
+          const d=!!S.shop.checked[item.id];
+          return `<div class="shop-row${d?' done':''}" onclick="toggleShop('${item.id}','${cat.color}')">
+            <div class="shop-box" style="${d?`background:${cat.color};border-color:${cat.color}`:''}">${d?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+            <div>
+              <span class="shop-name" style="font-size:14px;color:${d?'#bbb':'#333'}">${item.name}</span>
+              ${item.detail?`<span style="font-size:12px;color:#c8bfb0;margin-left:6px">· ${item.detail}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+    <div style="text-align:center;margin-bottom:24px;font-size:11px;color:#c8bfb0">Progress saves automatically</div>
+  `;
+}
+
+function toggleShop(id) { S.shop.checked[id]=!S.shop.checked[id]; save(); renderShop(); }
+function setFilter(f) { S.shop.filter=f; renderShop(); }
+function clearShop() { S.shop.checked={}; save(); renderShop(); }
+
+// ══════════════════════════════════════════════════════════
+// MAIN RENDER
+// ══════════════════════════════════════════════════════════
+function render() {
+  if (currentScreen==='workout') renderWorkout();
+  else if (currentScreen==='meal') renderMeal();
+  else if (currentScreen==='shop') renderShop();
+}
+
+// Init all screens once
+renderWorkout();
+renderMealContent();
+renderShop();
+</script>
+</body>
+</html>
