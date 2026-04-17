@@ -144,11 +144,11 @@
 <!-- ═══════════════════════════════════════════ MEAL PLAN SCREEN -->
 <div class="screen" id="screen-meal">
   <div class="page-header">
-    <div class="page-eyebrow">Muscle Gain</div>
-    <h1 class="page-title">5-Day<br><em>Meal Plan</em></h1>
+    <div class="page-eyebrow">Muscle Gain · 6-Week Plan</div>
+    <h1 class="page-title">Meal<br><em>Plan</em></h1>
   </div>
   <div class="tab-bar">
-    <button class="tab active" onclick="switchMealTab('plan',this)">Daily Plan</button>
+    <button class="tab active" onclick="switchMealTab('plan',this)">Week Plan</button>
     <button class="tab" onclick="switchMealTab('prep',this)">Sunday Prep</button>
     <button class="tab" onclick="switchMealTab('goals',this)">Goals</button>
   </div>
@@ -163,16 +163,6 @@
     <p class="page-sub">Organic · Whole foods · High protein</p>
   </div>
   <div id="shop-content"></div>
-</div>
-
-<!-- ═══════════════════════════════════════════ ROTATION SCREEN -->
-<div class="screen" id="screen-rotation">
-  <div class="page-header">
-    <div class="page-eyebrow">6-Week Cycle</div>
-    <h1 class="page-title">Meal<br><em>Rotation</em></h1>
-    <p class="page-sub">Repeat every 6 weeks · 2,100–2,400 cal · ~130g protein</p>
-  </div>
-  <div id="rotation-content"></div>
 </div>
 
 <!-- ═══════════════════════════════════════════ RECIPES SCREEN -->
@@ -204,10 +194,6 @@
   <button class="nav-btn" onclick="switchScreen('shop',this)">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
     <span>Shop</span>
-  </button>
-  <button class="nav-btn" onclick="switchScreen('rotation',this)">
-    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-    <span>6-Week</span>
   </button>
   <button class="nav-btn" onclick="switchScreen('recipes',this)">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
@@ -468,51 +454,74 @@ function renderMeal() { renderMealContent(); }
 function renderMealContent() {
   const el = document.getElementById('meal-content');
   if (S.meal.tab === 'plan') {
-    const day = MEAL_DAYS[S.meal.activeDay];
+    const wk = WEEKS[S.meal.activeWeek !== undefined ? S.meal.activeWeek : 0];
+    const dayIdx = S.meal.activeDay || 0;
+    const DAYS_OF_WEEK = ['Mon','Tue','Wed','Thu','Fri'];
+    // Day 1-3 = bowl (3-day meal), Day 4-5 = salad (2-day meal)
+    const isBowl = dayIdx < 3;
+    const meal = isBowl ? wk.meals[0] : wk.meals[1];
+    const smoothieForDay = wk.smoothies[dayIdx % wk.smoothies.length];
+    const addons = ['3 eggs (scrambled or boiled)','Greek yogurt bowl (add honey or berries)','Peanut butter toast'];
+    const addon = addons[dayIdx % 3];
+
     el.innerHTML = `
-      <div class="pill-row">
-        ${MEAL_DAYS.map((d,i)=>`<button class="pill${S.meal.activeDay===i?' active':''}" onclick="setMealDay(${i})">${d.label}</button>`).join('')}
+      <!-- Week selector -->
+      <div style="margin-bottom:6px">
+        <div class="section-label">Week</div>
+        <div class="pill-row">
+          ${WEEKS.map((w,i)=>`<button class="pill${(S.meal.activeWeek||0)===i?' active':''}" style="${(S.meal.activeWeek||0)===i?`background:${w.color};border-color:${w.color};color:white`:''}" onclick="setMealWeek(${i})">Wk ${w.week}</button>`).join('')}
+        </div>
       </div>
 
+      <!-- Day selector -->
+      <div style="margin-bottom:20px">
+        <div class="section-label">Day</div>
+        <div class="pill-row">
+          ${DAYS_OF_WEEK.map((d,i)=>`<button class="pill${dayIdx===i?' active':''}" onclick="setMealDay(${i})">${d} <span style="font-size:10px;opacity:0.7">${i<3?'Bowl':'Salad'}</span></button>`).join('')}
+        </div>
+      </div>
+
+      <!-- Week overview strip -->
+      <div class="card" style="border-left:4px solid ${wk.color};padding:12px 16px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:${wk.color}">Week ${wk.week} · ${DAYS_OF_WEEK[dayIdx]}</div>
+            <div style="font-size:12px;color:#aaa;margin-top:2px">${meal.name} · ${smoothieForDay} smoothie</div>
+          </div>
+          <div style="font-size:22px">${dayIdx<3?'🍲':'🥗'}</div>
+        </div>
+      </div>
+
+      <!-- Smoothie -->
       <div class="card">
         <div class="section-label">🥤 Breakfast Smoothie</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <span style="font-size:22px">${day.smoothie.emoji}</span>
-          <div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600">${day.smoothie.name}</div>
-            ${day.smoothie.note?`<div style="font-size:11px;color:#aaa">${day.smoothie.note}</div>`:''}
-          </div>
-        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;margin-bottom:10px">${smoothieForDay}</div>
         <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">BASE</div>
-        <div style="margin-bottom:12px">${SMOOTHIE_BASE.map(i=>`<span class="chip">${i}</span>`).join('')}</div>
-        <div style="font-size:10px;letter-spacing:2px;color:#7ab87a;margin-bottom:6px">ADD FOR TODAY</div>
-        <div>${day.smoothie.add.map(i=>`<span class="chip chip-green">${i}</span>`).join('')}</div>
-        <div style="margin-top:12px;font-size:12px;color:#aaa;border-top:1px solid #f0ebe4;padding-top:10px">⚡ Blend 30–45 seconds until smooth</div>
+        <div style="margin-bottom:10px">${SMOOTHIE_BASE.map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+        <div style="font-size:12px;color:#aaa;border-top:1px solid #f0ebe4;padding-top:10px">⚡ Blend 30–45 sec · See Recipes tab for full variations</div>
       </div>
 
+      <!-- Lunch -->
       <div class="card">
-        <div class="section-label">🍱 Lunch</div>
-        ${day.lunch==='chicken' ? `
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">Chicken Quinoa Bowl</div>
-          <div style="font-size:12px;color:#aaa;margin-bottom:14px">Prepped Sunday · Add avocado + lemon when eating</div>
-          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">INGREDIENTS (for 3 days)</div>
-          <div style="margin-bottom:14px">${['2 lbs chicken breast','1.5 cups dry quinoa','3 sweet potatoes','2 heads broccoli','2 tbsp olive oil','Salt, pepper, garlic','½ avocado + lemon (day of)'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+        <div class="section-label">🍱 Lunch · ${isBowl ? 'Days 1–3' : 'Days 4–5'}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">${meal.name}</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:12px">${meal.ingredients}</div>
+        ${isBowl ? `
           <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
-          ${CHICKEN_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('ch'+i,s.mins):''}</div></div>`).join('')}
+          ${BOWL_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('bowl'+i,s.mins):''}</div></div>`).join('')}
+          <div style="margin-top:10px;font-size:12px;color:#888;background:#f9f6f1;padding:10px;border-radius:8px">Add ½ avocado when eating</div>
         ` : `
-          <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">Salmon Avocado Salad</div>
-          <div style="font-size:12px;color:#aaa;margin-bottom:14px">Assemble day-of · Keep greens separate</div>
-          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">INGREDIENTS (for 2 days)</div>
-          <div style="margin-bottom:14px">${['2 salmon fillets','Mixed greens','Cherry tomatoes','Cucumber','2 avocados','Olive oil + balsamic','Pumpkin seeds or walnuts'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
           <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
-          ${SALMON_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('sa'+i,s.mins):''}</div></div>`).join('')}
+          ${SALAD_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('salad'+i,s.mins):''}</div></div>`).join('')}
+          <div style="margin-top:10px;font-size:12px;color:#888;background:#eef6f4;padding:10px;border-radius:8px">Assemble fresh · Keep greens separate until eating</div>
         `}
       </div>
 
+      <!-- Add-on -->
       <div class="card">
         <div class="section-label">➕ Daily Add-on — Don't Skip</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:17px">${day.addon}</div>
-        <div style="font-size:12px;color:#aaa;margin-top:6px">Or swap: eggs · Greek yogurt · PB toast</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:6px">${addon}</div>
+        <div style="font-size:12px;color:#aaa">Or swap: eggs · Greek yogurt · PB toast</div>
       </div>
     `;
   } else if (S.meal.tab === 'prep') {
@@ -562,6 +571,7 @@ function renderMealContent() {
 }
 
 function setMealDay(i) { S.meal.activeDay=i; save(); renderMealContent(); }
+function setMealWeek(i) { S.meal.activeWeek=i; S.meal.activeDay=0; save(); renderMealContent(); }
 function togglePrep(i) { S.meal.prepDone[i]=!S.meal.prepDone[i]; save(); renderMealContent(); }
 function clearPrep() { S.meal.prepDone={}; save(); renderMealContent(); }
 
