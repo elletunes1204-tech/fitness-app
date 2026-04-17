@@ -165,6 +165,32 @@
   <div id="shop-content"></div>
 </div>
 
+<!-- ═══════════════════════════════════════════ ROTATION SCREEN -->
+<div class="screen" id="screen-rotation">
+  <div class="page-header">
+    <div class="page-eyebrow">6-Week Cycle</div>
+    <h1 class="page-title">Meal<br><em>Rotation</em></h1>
+    <p class="page-sub">Repeat every 6 weeks · 2,100–2,400 cal · ~130g protein</p>
+  </div>
+  <div id="rotation-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ RECIPES SCREEN -->
+<div class="screen" id="screen-recipes">
+  <div class="page-header">
+    <div class="page-eyebrow">Master Recipes</div>
+    <h1 class="page-title">Full<br><em>Recipe Guide</em></h1>
+    <p class="page-sub">Smoothies · Bowls · Salads · Add-ons</p>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchRecipeTab('smoothies',this)">Smoothies</button>
+    <button class="tab" onclick="switchRecipeTab('bowl',this)">Bowl</button>
+    <button class="tab" onclick="switchRecipeTab('salad',this)">Salad</button>
+    <button class="tab" onclick="switchRecipeTab('addon',this)">Add-ons</button>
+  </div>
+  <div id="recipes-content"></div>
+</div>
+
 <!-- ═══════════════════════════════════════════ BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="switchScreen('workout',this)">
@@ -178,6 +204,14 @@
   <button class="nav-btn" onclick="switchScreen('shop',this)">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
     <span>Shop</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('rotation',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+    <span>6-Week</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('recipes',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+    <span>Recipes</span>
   </button>
 </nav>
 
@@ -595,18 +629,294 @@ function setFilter(f) { S.shop.filter=f; renderShop(); }
 function clearShop() { S.shop.checked={}; save(); renderShop(); }
 
 // ══════════════════════════════════════════════════════════
+// ROTATION DATA + RENDER
+// ══════════════════════════════════════════════════════════
+const WEEKS = [
+  { week:1, color:'#7ab87a', smoothies:['Mixed Berry','Berry Yogurt','Berry Peanut Butter'],
+    meals:[{name:'Chicken Quinoa Bowl',days:3,ingredients:'chicken · quinoa · sweet potato · broccoli'},{name:'Salmon Avocado Salad',days:2,ingredients:'salmon · mixed greens · avocado · tomato · cucumber'}] },
+  { week:2, color:'#5db89a', smoothies:['Mixed Berry + Spinach','Strawberry Banana','Berry Oats'],
+    meals:[{name:'Ground Turkey Rice Bowl',days:3,ingredients:'ground turkey · brown rice · peppers · onions'},{name:'Chicken Salad',days:2,ingredients:'chicken · mixed greens · avocado · olive oil'}] },
+  { week:3, color:'#d4a843', smoothies:['Triple Berry','Blueberry Almond Butter','Berry Protein + Flax'],
+    meals:[{name:'Chicken Sweet Potato Bowl',days:3,ingredients:'chicken · sweet potato · broccoli · quinoa'},{name:'Tuna Avocado Salad',days:2,ingredients:'tuna · avocado · mixed greens · lemon'}] },
+  { week:4, color:'#e8836a', smoothies:['Berry + Mango','Strawberry Peanut Butter','Berry Yogurt'],
+    meals:[{name:'Ground Beef Quinoa Bowl',days:3,ingredients:'ground beef · quinoa · peppers · spinach'},{name:'Salmon Salad',days:2,ingredients:'salmon · mixed greens · cucumber · balsamic'}] },
+  { week:5, color:'#8b6bb1', smoothies:['Berry Spinach Detox','Mixed Berry Oats','Berry Banana Protein'],
+    meals:[{name:'Chicken Rice Bowl',days:3,ingredients:'chicken · brown rice · broccoli · garlic'},{name:'Egg + Avocado Salad',days:2,ingredients:'3 eggs · avocado · mixed greens · cherry tomato'}] },
+  { week:6, color:'#c46b7a', smoothies:['Triple Berry + PB','Berry Yogurt Deluxe','Berry + Cinnamon Oats'],
+    meals:[{name:'Turkey Sweet Potato Bowl',days:3,ingredients:'turkey · sweet potato · spinach · quinoa'},{name:'Chicken Avocado Salad',days:2,ingredients:'chicken · avocado · mixed greens · lemon · seeds'}] },
+];
+
+const PREP_RULES = ['Cook 1 protein in bulk (chicken / turkey / beef)','Cook 1 carb base (rice / quinoa / sweet potato)','Prep vegetables for the week','Portion 5 lunches into containers'];
+const ADDONS = ['3 eggs (scrambled or boiled)','Greek yogurt (add honey or berries)','Peanut butter toast'];
+
+let rotWeek = 0;
+
+function renderRotation() {
+  const el = document.getElementById('rotation-content');
+  const w = WEEKS[rotWeek];
+
+  el.innerHTML = `
+    <!-- Week pills -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
+      ${WEEKS.map((wk,i)=>`<button class="pill${rotWeek===i?' active':''}" style="${rotWeek===i?`background:${wk.color};border-color:${wk.color};color:white`:''}" onclick="setRotWeek(${i})">Wk ${wk.week}</button>`).join('')}
+    </div>
+
+    <!-- Week header -->
+    <div class="card" style="border-left:4px solid ${w.color};padding-left:16px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:${w.color}">Week ${w.week}</div>
+      <div style="font-size:12px;color:#aaa;margin-top:2px">of 6 · repeat cycle after week 6</div>
+    </div>
+
+    <!-- Smoothies -->
+    <div class="card">
+      <div class="section-label">🥤 Smoothie Rotation</div>
+      ${w.smoothies.map((s,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<w.smoothies.length-1?'border-bottom:1px solid #f5f0ea':''}">
+          <div style="width:6px;height:6px;border-radius:50%;background:${w.color};flex-shrink:0"></div>
+          <div style="font-size:14px;color:#333">${s}</div>
+          <div style="margin-left:auto;font-size:11px;color:#bbb">Day ${i*2+1}${i===0?'–'+(i*2+2):''}</div>
+        </div>`).join('')}
+      <div style="margin-top:12px;padding:10px;background:#f9f6f1;border-radius:8px;font-size:12px;color:#888">
+        Base: almond milk · banana · protein · chia · PB · oats
+      </div>
+    </div>
+
+    <!-- Meals -->
+    <div class="card">
+      <div class="section-label">🍱 Lunch Meals</div>
+      ${w.meals.map((m,i)=>`
+        <div style="padding:12px;background:${i===0?'#f9f6f1':'#f2f8f5'};border-radius:10px;${i===0?'margin-bottom:10px':''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600">${m.name}</div>
+            <div style="font-size:11px;background:${w.color};color:white;padding:2px 8px;border-radius:10px">${m.days} days</div>
+          </div>
+          <div style="font-size:12px;color:#999">${m.ingredients}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Daily add-on -->
+    <div class="card">
+      <div class="section-label">➕ Daily Add-on</div>
+      ${ADDONS.map(a=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f5f0ea">
+        <div style="width:5px;height:5px;border-radius:50%;background:#c8bfb0"></div>
+        <div style="font-size:13px;color:#555">${a}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Prep rules -->
+    <div class="card">
+      <div class="section-label">⚙️ Sunday Prep Rules (Every Week)</div>
+      ${PREP_RULES.map((r,i)=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0;${i<PREP_RULES.length-1?'border-bottom:1px solid #f5f0ea':''}">
+        <div style="width:20px;height:20px;border-radius:50%;background:${w.color};color:white;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+        <div style="font-size:13px;color:#444;padding-top:2px">${r}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Goal -->
+    <div style="border:1px solid #e0d8d0;border-radius:12px;padding:14px 18px;text-align:center;margin-bottom:8px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:14px;color:#888;font-style:italic">"Repeat this cycle every 6 weeks."</div>
+      <div style="display:flex;justify-content:center;gap:20px;margin-top:10px">
+        <div style="text-align:center"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:${w.color}">2,100+</div><div style="font-size:10px;color:#bbb;letter-spacing:1px;text-transform:uppercase">cal/day</div></div>
+        <div style="text-align:center"><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:${w.color}">130g</div><div style="font-size:10px;color:#bbb;letter-spacing:1px;text-transform:uppercase">protein/day</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function setRotWeek(i) { rotWeek = i; renderRotation(); }
+
+// ══════════════════════════════════════════════════════════
+// RECIPES
+// ══════════════════════════════════════════════════════════
+const SMOOTHIE_VARIATIONS = [
+  { name:'Mixed Berry', emoji:'🫐', color:'#8b6bb1', add:['1 cup frozen mixed berries'], cal:'~400', protein:'~32g' },
+  { name:'Berry Yogurt', emoji:'🍓', color:'#c46b7a', add:['1 cup mixed berries','½ cup Greek yogurt'], note:'Thicker + more protein', cal:'~450', protein:'~40g' },
+  { name:'Strawberry PB', emoji:'🍓', color:'#e8836a', add:['1 cup strawberries','Extra 1 tbsp peanut butter','Dash cinnamon'], cal:'~480', protein:'~34g' },
+  { name:'Berry Oat', emoji:'🌾', color:'#d4a843', add:['1 cup mixed berries','Extra ¼ cup oats'], note:'Higher calorie option', cal:'~520', protein:'~34g' },
+  { name:'Berry Green', emoji:'🥬', color:'#5db89a', add:['1 cup mixed berries','Handful of spinach'], note:"You won't taste the spinach", cal:'~400', protein:'~32g' },
+  { name:'Triple Berry', emoji:'🫐', color:'#7ab87a', add:['1.5 cups mixed berries'], cal:'~430', protein:'~32g' },
+];
+
+const BOWL_STEPS = [
+  { text:'Cook rice or quinoa per package instructions.', mins:15 },
+  { text:'Preheat oven to 400°F.' },
+  { text:'Cube sweet potatoes & chop vegetables (broccoli, peppers, etc.).' },
+  { text:'Toss veggies with olive oil, salt, pepper. Spread on baking sheet.'},
+  { text:'Roast 25–30 minutes until golden.', mins:28 },
+  { text:'Season protein with salt, pepper, garlic. Cook in pan 6–7 min per side OR bake 20 min.', mins:20 },
+  { text:'Portion into 3 containers: protein + carb + veggies. Add ½ avocado when eating.' },
+];
+
+const SALAD_STEPS = [
+  { text:'If using salmon: season with salt & pepper. Bake at 400°F for 12–15 min.', mins:13 },
+  { text:'If using tuna: drain and season. If using chicken: slice leftover cooked chicken.' },
+  { text:'Chop cherry tomatoes and cucumber.' },
+  { text:'Keep greens separate until eating to stay fresh.' },
+  { text:'Assemble day-of: greens + veggies + protein + avocado. Drizzle olive oil + balsamic. Top with seeds or nuts.' },
+];
+
+const ADDON_OPTIONS = [
+  { name:'3 Eggs', emoji:'🍳', how:'Scrambled: whisk with splash of milk, cook on medium-low 3–4 min. Boiled: simmer 8 min for hard boiled.', protein:'~18g', mins:4 },
+  { name:'Greek Yogurt Bowl', emoji:'🥣', how:'Full-fat Greek yogurt in a bowl. Top with honey, mixed berries, or granola.', protein:'~15–20g', mins:null },
+  { name:'PB Toast', emoji:'🍞', how:'Toast 2 slices. Spread generous peanut butter. Optional: banana slices + cinnamon on top.', protein:'~14g', mins:null },
+];
+
+let recipeTab = 'smoothies';
+let activeSmoothie = 0;
+
+function switchRecipeTab(tab, btn) {
+  recipeTab = tab;
+  document.querySelectorAll('#screen-recipes .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderRecipes();
+}
+
+function renderRecipes() {
+  const el = document.getElementById('recipes-content');
+  if (!el) return;
+
+  if (recipeTab === 'smoothies') {
+    const sv = SMOOTHIE_VARIATIONS[activeSmoothie];
+    el.innerHTML = `
+      <!-- Smoothie picker -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+        ${SMOOTHIE_VARIATIONS.map((s,i)=>`<button class="pill${activeSmoothie===i?' active':''}" style="${activeSmoothie===i?`background:${s.color};border-color:${s.color};color:white`:''}" onclick="setActiveSmoothie(${i})">${s.emoji} ${s.name}</button>`).join('')}
+      </div>
+
+      <div class="card" style="border-top:3px solid ${sv.color}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <span style="font-size:28px">${sv.emoji}</span>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600">${sv.name}</div>
+            ${sv.note?`<div style="font-size:11px;color:#aaa">${sv.note}</div>`:''}
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-size:11px;color:#aaa">est.</div>
+            <div style="font-size:13px;font-weight:500;color:${sv.color}">${sv.protein}</div>
+          </div>
+        </div>
+
+        <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">BASE (EVERY SMOOTHIE)</div>
+        <div style="margin-bottom:14px">${['1 cup almond milk','1 banana','1 scoop protein powder','1 tbsp chia seeds','2 tbsp peanut butter','½ cup oats'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+
+        <div style="font-size:10px;letter-spacing:2px;color:${sv.color};margin-bottom:8px">ADD FOR THIS VARIATION</div>
+        <div style="margin-bottom:14px">${sv.add.map(i=>`<span class="chip chip-green">${i}</span>`).join('')}</div>
+
+        <div style="background:#f9f6f1;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⚡</span>
+          <div style="font-size:13px;color:#555">Blend <strong>30–45 seconds</strong> until smooth. Drink immediately.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (recipeTab === 'bowl') {
+    el.innerHTML = `
+      <div class="card">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:4px">Protein Bowl</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:14px">3 days per week · makes 3 containers</div>
+
+        <div class="section-label">Choose Your Protein</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${['Chicken breast','Ground turkey','Ground beef'].map(p=>`<span class="chip" style="background:#fff3ee;color:#c06040">${p}</span>`).join('')}
+        </div>
+
+        <div class="section-label">Choose Your Carb</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${['Quinoa (1.5 cups dry)','Brown rice (1.5 cups dry)','Sweet potato (3 medium)'].map(c=>`<span class="chip" style="background:#fdf6e3;color:#9a7a1a">${c}</span>`).join('')}
+        </div>
+
+        <div class="section-label">Ingredients</div>
+        <div style="margin-bottom:16px">${['2 lbs protein','1.5 cups rice or quinoa','3 sweet potatoes OR extra rice','2 cups vegetables (broccoli, peppers)','2 tbsp olive oil','Salt, pepper, garlic','½ avocado per serving (add day-of)'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+
+        <div class="section-label">Steps</div>
+        ${BOWL_STEPS.map((s,i)=>`<div class="step-row">
+          <div class="step-num">${i+1}</div>
+          <div class="step-text">${s.text}${s.mins?timerHTML('bowl'+i,s.mins):''}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="card" style="background:#f9f6f1;border:none">
+        <div style="font-size:13px;color:#777;line-height:1.6">
+          💡 <strong>Tip:</strong> Swap the protein each week to keep it interesting. The carb and veggie base stays the same.
+        </div>
+      </div>
+    `;
+  }
+
+  else if (recipeTab === 'salad') {
+    el.innerHTML = `
+      <div class="card">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:4px">Protein Salad</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:14px">2 days per week · assemble fresh</div>
+
+        <div class="section-label">Choose Your Protein</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          ${['Salmon (2 fillets)','Canned tuna','Leftover chicken'].map(p=>`<span class="chip" style="background:#eef6f4;color:#3a8a7a">${p}</span>`).join('')}
+        </div>
+
+        <div class="section-label">Ingredients</div>
+        <div style="margin-bottom:16px">${['Mixed greens','Cherry tomatoes','Cucumber','2 avocados','Olive oil','Balsamic vinegar','Seeds or nuts (pumpkin/walnuts)'].map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+
+        <div class="section-label">Steps</div>
+        ${SALAD_STEPS.map((s,i)=>`<div class="step-row">
+          <div class="step-num">${i+1}</div>
+          <div class="step-text">${s.text}${s.mins?timerHTML('salad'+i,s.mins):''}</div>
+        </div>`).join('')}
+      </div>
+
+      <div class="card" style="background:#eef6f4;border:none">
+        <div style="font-size:13px;color:#3a8a7a;line-height:1.6">
+          💡 <strong>Storage tip:</strong> Keep greens, protein, and dressing in separate containers. Combine only when eating so nothing gets soggy.
+        </div>
+      </div>
+    `;
+  }
+
+  else if (recipeTab === 'addon') {
+    el.innerHTML = `
+      <div style="font-size:13px;color:#888;margin-bottom:16px;line-height:1.5">Choose one every day. This adds ~120–200 calories and 14–20g protein. <strong>Do not skip.</strong></div>
+      ${ADDON_OPTIONS.map(a=>`
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <span style="font-size:26px">${a.emoji}</span>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600">${a.name}</div>
+              <div style="font-size:12px;color:#7ab87a;font-weight:500">${a.protein} protein</div>
+            </div>
+            ${a.mins?`<div style="margin-left:auto">${timerHTML('addon'+a.name.replace(/\s/g,''),a.mins)}</div>`:''}
+          </div>
+          <div style="font-size:13px;color:#666;line-height:1.55;background:#f9f6f1;border-radius:8px;padding:10px">${a.how}</div>
+        </div>`).join('')}
+
+      <div style="border:1px solid #e0d8d0;border-radius:12px;padding:14px 18px;margin-bottom:8px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#888;font-style:italic;line-height:1.5">
+          "Do not skip the add-on. Do not under-portion your food. Stay consistent for 6 weeks."
+        </div>
+      </div>
+    `;
+  }
+}
+
+function setActiveSmoothie(i) { activeSmoothie = i; renderRecipes(); }
+
+// ══════════════════════════════════════════════════════════
 // MAIN RENDER
 // ══════════════════════════════════════════════════════════
 function render() {
   if (currentScreen==='workout') renderWorkout();
   else if (currentScreen==='meal') renderMeal();
   else if (currentScreen==='shop') renderShop();
+  else if (currentScreen==='rotation') renderRotation();
+  else if (currentScreen==='recipes') renderRecipes();
 }
 
 // Init all screens once
 renderWorkout();
 renderMealContent();
 renderShop();
+renderRotation();
+renderRecipes();
 </script>
 </body>
 </html>
