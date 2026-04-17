@@ -274,37 +274,75 @@ const SALMON_STEPS = [
 ];
 const PREP_TASKS = ['Cook chicken (season + bake/pan)','Cook quinoa (1.5 cups dry)','Roast sweet potatoes + broccoli','Cook or prep salmon for Day 4–5','Portion 5 lunches into containers','Pre-bag smoothie ingredients (optional)'];
 
-const SHOP_CATS = [
-  {id:'protein',label:'Protein',emoji:'🥩',color:'#e8836a',items:[
-    {id:'p1',name:'Chicken breast',detail:'2 lbs, organic'},{id:'p2',name:'Salmon',detail:'2 fillets, organic'},
-    {id:'p3',name:'Eggs',detail:'1 dozen'},{id:'p4',name:'Greek yogurt',detail:'large tub'},{id:'p5',name:'Protein powder',detail:''},
-  ]},
-  {id:'carbs',label:'Carbs',emoji:'🌾',color:'#d4a843',items:[
-    {id:'c1',name:'Oats',detail:'1 container'},{id:'c2',name:'Quinoa',detail:'1 bag'},
-    {id:'c3',name:'Sweet potatoes',detail:'3–4'},{id:'c4',name:'Bananas',detail:'5–7'},
-    {id:'c5',name:'Frozen berries',detail:'1 bag'},{id:'c6',name:'Mango or pineapple',detail:'1 bag, frozen or fresh'},
-  ]},
-  {id:'fats',label:'Fats',emoji:'🥑',color:'#7ab87a',items:[
-    {id:'f1',name:'Peanut or almond butter',detail:''},{id:'f2',name:'Olive oil',detail:''},
-    {id:'f3',name:'Avocados',detail:'4–5'},{id:'f4',name:'Chia seeds',detail:''},
-    {id:'f5',name:'Hemp seeds',detail:'optional'},{id:'f6',name:'Pumpkin seeds or walnuts',detail:''},
-  ]},
-  {id:'veggies',label:'Vegetables',emoji:'🥦',color:'#5db89a',items:[
-    {id:'v1',name:'Spinach',detail:'large container, organic'},{id:'v2',name:'Broccoli',detail:'2 heads, organic'},
-    {id:'v3',name:'Mixed greens',detail:'1 large container, organic'},{id:'v4',name:'Cherry tomatoes',detail:''},
-    {id:'v5',name:'Cucumbers',detail:''},{id:'v6',name:'Garlic',detail:''},{id:'v7',name:'Ginger',detail:''},
-  ]},
-  {id:'extras',label:'Extras',emoji:'🫙',color:'#a08cc8',items:[
-    {id:'e1',name:'Lemon',detail:''},{id:'e2',name:'Balsamic vinegar',detail:''},
-    {id:'e3',name:'Cinnamon',detail:''},{id:'e4',name:'Salt & pepper',detail:''},
-    {id:'e5',name:'Basic spices',detail:'paprika, cumin'},
-  ]},
-  {id:'optional',label:'Optional',emoji:'✨',color:'#c89a6a',items:[
-    {id:'o1',name:'Coconut flakes',detail:'if budget allows'},{id:'o2',name:'Honey',detail:'if budget allows'},
-  ]},
+// Per-week shopping lists — ALWAYS_ITEMS are the same every week
+const ALWAYS_ITEMS = [
+  {id:'a1',name:'Almond milk',detail:'1 carton'},
+  {id:'a2',name:'Bananas',detail:'5–7'},
+  {id:'a3',name:'Protein powder',detail:'1 scoop/day'},
+  {id:'a4',name:'Chia seeds',detail:'small bag'},
+  {id:'a5',name:'Peanut butter',detail:'1 jar'},
+  {id:'a6',name:'Oats',detail:'1 container'},
+  {id:'a7',name:'Frozen berries',detail:'1–2 bags'},
+  {id:'a8',name:'Avocados',detail:'4–5'},
+  {id:'a9',name:'Olive oil',detail:''},
+  {id:'a10',name:'Eggs',detail:'1 dozen'},
+  {id:'a11',name:'Greek yogurt',detail:'large tub'},
+  {id:'a12',name:'Bread',detail:'for PB toast'},
+  {id:'a13',name:'Garlic',detail:''},
+  {id:'a14',name:'Salt & pepper',detail:''},
+  {id:'a15',name:'Lemon',detail:'2–3'},
+  {id:'a16',name:'Balsamic vinegar',detail:''},
 ];
 
-const ALL_ITEMS = SHOP_CATS.flatMap(c => c.items);
+const WEEK_SHOP = [
+  { // Week 1
+    protein:[{id:'w1p1',name:'Chicken breast',detail:'2 lbs, organic'},{id:'w1p2',name:'Salmon',detail:'2 fillets, organic'}],
+    carbs:[{id:'w1c1',name:'Quinoa',detail:'1 bag'},{id:'w1c2',name:'Sweet potatoes',detail:'3–4'}],
+    veggies:[{id:'w1v1',name:'Broccoli',detail:'2 heads'},{id:'w1v2',name:'Mixed greens',detail:'large container'},{id:'w1v3',name:'Cherry tomatoes',detail:''},{id:'w1v4',name:'Cucumber',detail:''}],
+    extras:[{id:'w1e1',name:'Pumpkin seeds or walnuts',detail:''}],
+  },
+  { // Week 2
+    protein:[{id:'w2p1',name:'Ground turkey',detail:'2 lbs'},{id:'w2p2',name:'Chicken breast',detail:'1 lb, for salad'}],
+    carbs:[{id:'w2c1',name:'Brown rice',detail:'1 bag'},{id:'w2c2',name:'Strawberries',detail:'1 bag, frozen'}],
+    veggies:[{id:'w2v1',name:'Bell peppers',detail:'3–4'},{id:'w2v2',name:'Onions',detail:'2'},{id:'w2v3',name:'Mixed greens',detail:'large container'},{id:'w2v4',name:'Spinach',detail:'large bag'}],
+    extras:[{id:'w2e1',name:'Cumin + paprika',detail:'for turkey bowl'}],
+  },
+  { // Week 3
+    protein:[{id:'w3p1',name:'Chicken breast',detail:'2 lbs'},{id:'w3p2',name:'Canned tuna',detail:'2 cans, in water'}],
+    carbs:[{id:'w3c1',name:'Quinoa',detail:'1 bag'},{id:'w3c2',name:'Sweet potatoes',detail:'3–4'},{id:'w3c3',name:'Blueberries',detail:'1 bag, frozen'}],
+    veggies:[{id:'w3v1',name:'Broccoli',detail:'2 heads'},{id:'w3v2',name:'Mixed greens',detail:'large container'},{id:'w3v3',name:'Cherry tomatoes',detail:''},{id:'w3v4',name:'Cucumber',detail:''}],
+    extras:[{id:'w3e1',name:'Flaxseed',detail:'small bag'},{id:'w3e2',name:'Almond butter',detail:'1 jar'}],
+  },
+  { // Week 4
+    protein:[{id:'w4p1',name:'Ground beef',detail:'2 lbs, lean'},{id:'w4p2',name:'Salmon',detail:'2 fillets, organic'}],
+    carbs:[{id:'w4c1',name:'Quinoa',detail:'1 bag'},{id:'w4c2',name:'Frozen mango',detail:'1 bag'}],
+    veggies:[{id:'w4v1',name:'Bell peppers',detail:'3–4'},{id:'w4v2',name:'Spinach',detail:'large bag'},{id:'w4v3',name:'Mixed greens',detail:'large container'},{id:'w4v4',name:'Cucumber',detail:''}],
+    extras:[{id:'w4e1',name:'Cinnamon',detail:''},{id:'w4e2',name:'Pumpkin seeds',detail:''}],
+  },
+  { // Week 5
+    protein:[{id:'w5p1',name:'Chicken breast',detail:'2 lbs'},{id:'w5p2',name:'Eggs',detail:'extra dozen (for salad)'}],
+    carbs:[{id:'w5c1',name:'Brown rice',detail:'1 bag'},{id:'w5c2',name:'Strawberries',detail:'1 bag, frozen'}],
+    veggies:[{id:'w5v1',name:'Broccoli',detail:'2 heads'},{id:'w5v2',name:'Spinach',detail:'large bag'},{id:'w5v3',name:'Mixed greens',detail:'large container'},{id:'w5v4',name:'Cherry tomatoes',detail:''}],
+    extras:[{id:'w5e1',name:'Hemp seeds',detail:'optional'},{id:'w5e2',name:'Coconut flakes',detail:'optional'}],
+  },
+  { // Week 6
+    protein:[{id:'w6p1',name:'Ground turkey',detail:'2 lbs'},{id:'w6p2',name:'Chicken breast',detail:'1 lb, for salad'}],
+    carbs:[{id:'w6c1',name:'Quinoa',detail:'1 bag'},{id:'w6c2',name:'Sweet potatoes',detail:'3–4'}],
+    veggies:[{id:'w6v1',name:'Spinach',detail:'large bag'},{id:'w6v2',name:'Mixed greens',detail:'large container'},{id:'w6v3',name:'Cherry tomatoes',detail:''},{id:'w6v4',name:'Cucumber',detail:''}],
+    extras:[{id:'w6e1',name:'Cinnamon',detail:''},{id:'w6e2',name:'Seeds or nuts',detail:'walnuts or pumpkin seeds'},{id:'w6e3',name:'Honey',detail:'if budget allows'}],
+  },
+];
+
+function getShopCats(weekIdx) {
+  const w = WEEK_SHOP[weekIdx];
+  return [
+    {id:'protein',label:'Protein',emoji:'🥩',color:'#e8836a',items:w.protein},
+    {id:'carbs',label:'Carbs & Fruit',emoji:'🌾',color:'#d4a843',items:w.carbs},
+    {id:'veggies',label:'Vegetables',emoji:'🥦',color:'#5db89a',items:w.veggies},
+    {id:'always',label:'Every Week',emoji:'🔁',color:'#a08cc8',items:ALWAYS_ITEMS},
+    {id:'extras',label:'Week Extras',emoji:'✨',color:'#c89a6a',items:w.extras},
+  ];
+}
 
 // ══════════════════════════════════════════════════════════
 // NAV
@@ -580,37 +618,61 @@ function clearPrep() { S.meal.prepDone={}; save(); renderMealContent(); }
 // ══════════════════════════════════════════════════════════
 function renderShop() {
   const el = document.getElementById('shop-content');
-  const total = ALL_ITEMS.length;
-  const done = Object.values(S.shop.checked).filter(Boolean).length;
+  const wkIdx = S.shop.activeWeek || 0;
+  const wkColor = WEEKS[wkIdx].color;
+  const cats = getShopCats(wkIdx);
+  const allItems = cats.flatMap(c => c.items);
+  const total = allItems.length;
+  const done = allItems.filter(i => S.shop.checked[wkIdx+'-'+i.id]).length;
   const pct = Math.round(done/total*100);
 
-  const filtered = (cat) => {
-    if (S.shop.filter==='all') return cat.items;
-    if (S.shop.filter==='remaining') return cat.items.filter(i=>!S.shop.checked[i.id]);
-    return cat.items.filter(i=>S.shop.checked[i.id]);
+  const key = (id) => wkIdx+'-'+id;
+
+  const filtered = (items) => {
+    if (S.shop.filter==='all') return items;
+    if (S.shop.filter==='remaining') return items.filter(i=>!S.shop.checked[key(i.id)]);
+    return items.filter(i=>S.shop.checked[key(i.id)]);
   };
 
-  const cats = SHOP_CATS.map(c=>({...c, items:filtered(c)})).filter(c=>c.items.length>0);
-
   el.innerHTML = `
+    <!-- Week selector -->
+    <div style="margin-bottom:16px">
+      <div class="section-label">Shopping Week</div>
+      <div class="pill-row">
+        ${WEEKS.map((w,i)=>`<button class="pill${wkIdx===i?' active':''}" style="${wkIdx===i?`background:${w.color};border-color:${w.color};color:white`:''}" onclick="setShopWeek(${i})">Wk ${w.week}</button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Progress + filters -->
     <div class="card">
       <div class="flex-between" style="margin-bottom:4px">
-        <div style="font-size:13px;color:#888"><span style="font-weight:500;color:#1a1a1a;font-size:15px">${done}</span> / ${total} items grabbed</div>
+        <div style="font-size:13px;color:#888">
+          <span style="font-weight:500;color:#1a1a1a;font-size:15px">${done}</span> / ${total} items grabbed
+        </div>
         <div style="display:flex;gap:8px;align-items:center">
           <span style="font-size:12px;color:#b0a898">${pct}%</span>
           <button class="small-btn" onclick="clearShop()">Reset</button>
         </div>
       </div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:linear-gradient(90deg,${wkColor},${wkColor}99)"></div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="filter-btn${S.shop.filter==='all'?' active':''}" onclick="setFilter('all')">All</button>
         <button class="filter-btn${S.shop.filter==='remaining'?' active':''}" onclick="setFilter('remaining')">Remaining (${total-done})</button>
         <button class="filter-btn${S.shop.filter==='done'?' active':''}" onclick="setFilter('done')">Got it (${done})</button>
       </div>
     </div>
-    ${cats.length===0?`<div class="card" style="text-align:center;padding:40px 0;font-family:'Cormorant Garamond',serif;font-size:18px;color:#bbb;font-style:italic">${S.shop.filter==='done'?'Nothing checked off yet.':'All items grabbed — great work! 🎉'}</div>`:''}
+
+    <!-- Week meals summary -->
+    <div class="card" style="border-left:4px solid ${wkColor};padding:12px 16px">
+      <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:6px">WEEK ${wkIdx+1} MEALS</div>
+      ${WEEKS[wkIdx].meals.map(m=>`<div style="font-size:13px;color:#444;margin-bottom:3px">· ${m.name}</div>`).join('')}
+      <div style="font-size:12px;color:#aaa;margin-top:6px">Smoothies: ${WEEKS[wkIdx].smoothies.join(' · ')}</div>
+    </div>
+
     ${cats.map(cat=>{
-      const catDone = cat.items.filter(i=>S.shop.checked[i.id]).length;
+      const visItems = filtered(cat.items);
+      if (visItems.length === 0) return '';
+      const catDone = cat.items.filter(i=>S.shop.checked[key(i.id)]).length;
       return `<div class="card">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <span style="font-size:18px">${cat.emoji}</span>
@@ -618,8 +680,8 @@ function renderShop() {
           <span style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600">${cat.label}</span>
           <span class="cat-badge">${catDone}/${cat.items.length}</span>
         </div>
-        ${cat.items.map(item=>{
-          const d=!!S.shop.checked[item.id];
+        ${visItems.map(item=>{
+          const d=!!S.shop.checked[key(item.id)];
           return `<div class="shop-row${d?' done':''}" onclick="toggleShop('${item.id}','${cat.color}')">
             <div class="shop-box" style="${d?`background:${cat.color};border-color:${cat.color}`:''}">${d?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
             <div>
@@ -630,13 +692,16 @@ function renderShop() {
         }).join('')}
       </div>`;
     }).join('')}
-    <div style="text-align:center;margin-bottom:24px;font-size:11px;color:#c8bfb0">Progress saves automatically</div>
+
+    ${cats.every(c=>filtered(c.items).length===0)?`<div class="card" style="text-align:center;padding:40px 0;font-family:'Cormorant Garamond',serif;font-size:18px;color:#bbb;font-style:italic">${S.shop.filter==='done'?'Nothing checked off yet.':'All items grabbed — great work! 🎉'}</div>`:''}
+    <div style="text-align:center;margin-bottom:24px;font-size:11px;color:#c8bfb0">Progress saves per week automatically</div>
   `;
 }
 
-function toggleShop(id) { S.shop.checked[id]=!S.shop.checked[id]; save(); renderShop(); }
+function toggleShop(id) { const k=(S.shop.activeWeek||0)+'-'+id; S.shop.checked[k]=!S.shop.checked[k]; save(); renderShop(); }
 function setFilter(f) { S.shop.filter=f; renderShop(); }
-function clearShop() { S.shop.checked={}; save(); renderShop(); }
+function setShopWeek(i) { S.shop.activeWeek=i; S.shop.filter='all'; save(); renderShop(); }
+function clearShop() { const wk=S.shop.activeWeek||0; Object.keys(S.shop.checked).forEach(k=>{ if(k.startsWith(wk+'-')) delete S.shop.checked[k]; }); save(); renderShop(); }
 
 // ══════════════════════════════════════════════════════════
 // ROTATION DATA + RENDER
