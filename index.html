@@ -148,11 +148,20 @@
     <h1 class="page-title">Meal<br><em>Plan</em></h1>
   </div>
   <div class="tab-bar">
-    <button class="tab active" onclick="switchMealTab('plan',this)">Week Plan</button>
-    <button class="tab" onclick="switchMealTab('prep',this)">Sunday Prep</button>
+    <button class="tab active" onclick="switchMealTab('plan',this)">Daily Plan</button>
     <button class="tab" onclick="switchMealTab('goals',this)">Goals</button>
   </div>
   <div id="meal-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PREP SCREEN -->
+<div class="screen" id="screen-prep">
+  <div class="page-header">
+    <div class="page-eyebrow">Sunday Batch Cook</div>
+    <h1 class="page-title">Prep<br><em>Guide</em></h1>
+    <p class="page-sub">Full recipes · Exact measurements · By week</p>
+  </div>
+  <div id="prep-content"></div>
 </div>
 
 <!-- ═══════════════════════════════════════════ SHOPPING SCREEN -->
@@ -190,6 +199,10 @@
   <button class="nav-btn" onclick="switchScreen('meal',this)">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M6 13.121v3.615a2.625 2.625 0 002.625 2.625h6.75A2.625 2.625 0 0018 16.736v-3.615M6 13.121c.995.218 2.033.332 3.092.332h5.816c1.059 0 2.097-.114 3.092-.332"/></svg>
     <span>Meals</span>
+  </button>
+  <button class="nav-btn" onclick="switchScreen('prep',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span>Prep</span>
   </button>
   <button class="nav-btn" onclick="switchScreen('shop',this)">
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
@@ -495,7 +508,6 @@ function renderMealContent() {
     const wk = WEEKS[S.meal.activeWeek !== undefined ? S.meal.activeWeek : 0];
     const dayIdx = S.meal.activeDay || 0;
     const DAYS_OF_WEEK = ['Mon','Tue','Wed','Thu','Fri'];
-    // Day 1-3 = bowl (3-day meal), Day 4-5 = salad (2-day meal)
     const isBowl = dayIdx < 3;
     const meal = isBowl ? wk.meals[0] : wk.meals[1];
     const smoothieForDay = wk.smoothies[dayIdx % wk.smoothies.length];
@@ -503,23 +515,18 @@ function renderMealContent() {
     const addon = addons[dayIdx % 3];
 
     el.innerHTML = `
-      <!-- Week selector -->
       <div style="margin-bottom:6px">
         <div class="section-label">Week</div>
         <div class="pill-row">
           ${WEEKS.map((w,i)=>`<button class="pill${(S.meal.activeWeek||0)===i?' active':''}" style="${(S.meal.activeWeek||0)===i?`background:${w.color};border-color:${w.color};color:white`:''}" onclick="setMealWeek(${i})">Wk ${w.week}</button>`).join('')}
         </div>
       </div>
-
-      <!-- Day selector -->
       <div style="margin-bottom:20px">
         <div class="section-label">Day</div>
         <div class="pill-row">
           ${DAYS_OF_WEEK.map((d,i)=>`<button class="pill${dayIdx===i?' active':''}" onclick="setMealDay(${i})">${d} <span style="font-size:10px;opacity:0.7">${i<3?'Bowl':'Salad'}</span></button>`).join('')}
         </div>
       </div>
-
-      <!-- Week overview strip -->
       <div class="card" style="border-left:4px solid ${wk.color};padding:12px 16px;margin-bottom:14px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
@@ -529,8 +536,6 @@ function renderMealContent() {
           <div style="font-size:22px">${dayIdx<3?'🍲':'🥗'}</div>
         </div>
       </div>
-
-      <!-- Smoothie -->
       <div class="card">
         <div class="section-label">🥤 Breakfast Smoothie</div>
         <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;margin-bottom:10px">${smoothieForDay}</div>
@@ -538,52 +543,18 @@ function renderMealContent() {
         <div style="margin-bottom:10px">${SMOOTHIE_BASE.map(i=>`<span class="chip">${i}</span>`).join('')}</div>
         <div style="font-size:12px;color:#aaa;border-top:1px solid #f0ebe4;padding-top:10px">⚡ Blend 30–45 sec · See Recipes tab for full variations</div>
       </div>
-
-      <!-- Lunch -->
       <div class="card">
-        <div class="section-label">🍱 Lunch · ${isBowl ? 'Days 1–3' : 'Days 4–5'}</div>
+        <div class="section-label">🍱 Lunch · ${isBowl?'Days 1–3':'Days 4–5'}</div>
         <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:4px">${meal.name}</div>
         <div style="font-size:12px;color:#aaa;margin-bottom:12px">${meal.ingredients}</div>
-        ${isBowl ? `
-          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
-          ${BOWL_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('bowl'+i,s.mins):''}</div></div>`).join('')}
-          <div style="margin-top:10px;font-size:12px;color:#888;background:#f9f6f1;padding:10px;border-radius:8px">Add ½ avocado when eating</div>
-        ` : `
-          <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">STEPS</div>
-          ${SALAD_STEPS.map((s,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="step-text">${s.text}${s.mins?timerHTML('salad'+i,s.mins):''}</div></div>`).join('')}
-          <div style="margin-top:10px;font-size:12px;color:#888;background:#eef6f4;padding:10px;border-radius:8px">Assemble fresh · Keep greens separate until eating</div>
-        `}
+        <div style="font-size:12px;color:#7ab87a;background:#eef6ee;padding:8px 12px;border-radius:8px">
+          📋 Full recipe with exact measurements → <strong>Prep tab</strong>
+        </div>
       </div>
-
-      <!-- Add-on -->
       <div class="card">
         <div class="section-label">➕ Daily Add-on — Don't Skip</div>
         <div style="font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:6px">${addon}</div>
         <div style="font-size:12px;color:#aaa">Or swap: eggs · Greek yogurt · PB toast</div>
-      </div>
-    `;
-  } else if (S.meal.tab === 'prep') {
-    const done = Object.values(S.meal.prepDone).filter(Boolean).length;
-    el.innerHTML = `
-      <div class="card">
-        <div class="section-label">📅 Sunday Batch Prep</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:#666;margin-bottom:16px">1–2 hours → 5 days sorted</div>
-        <div class="flex-between" style="margin-bottom:16px">
-          <div style="font-size:13px;color:#888"><span style="font-weight:500;color:#1a1a1a">${done}</span> / ${PREP_TASKS.length} tasks done</div>
-          <button class="small-btn" onclick="clearPrep()">Reset</button>
-        </div>
-        ${PREP_TASKS.map((t,i)=>`<div class="shop-row${S.meal.prepDone[i]?' done':''}" onclick="togglePrep(${i})">
-          <div class="shop-box" style="${S.meal.prepDone[i]?'background:var(--green);border-color:var(--green)':''}">${S.meal.prepDone[i]?'<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
-          <div class="shop-name" style="font-size:14px;color:${S.meal.prepDone[i]?'#bbb':'#333'}">${t}</div>
-        </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="section-label">🧊 Storage Tips</div>
-        ${[['Chicken + quinoa + veggies','Fridge up to 4 days'],['Salmon','Fridge 2 days — bake fresh if possible'],['Greens + tomatoes','Keep separate, dress day-of'],['Smoothie bags','Freeze portioned, blend fresh']].map(([item,tip],i,a)=>`
-          <div style="display:flex;justify-content:space-between;padding:9px 0;${i<a.length-1?'border-bottom:1px solid #f5f0ea':''}">
-            <div style="font-size:13px;color:#333">${item}</div>
-            <div style="font-size:12px;color:#aaa;text-align:right;max-width:48%">${tip}</div>
-          </div>`).join('')}
       </div>
     `;
   } else {
@@ -594,15 +565,19 @@ function renderMealContent() {
       </div>
       <div class="card">
         <div class="section-label">Protein Breakdown</div>
-        ${[['Smoothie','~30g','#8b6bb1'],['Chicken or Salmon','~40–50g','#e8836a'],['Daily Add-on','~15–20g','#d4a843'],['Total','~120–130g','#5db89a']].map(([l,v,c],i,a)=>`
+        ${[['Smoothie','~30g','#8b6bb1'],['Bowl or Salad','~40–50g','#e8836a'],['Daily Add-on','~15–20g','#d4a843'],['Total','~120–130g','#5db89a']].map(([l,v,c],i,a)=>`
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;${i<a.length-1?'border-bottom:1px solid #f5f0ea':''}">
             <div style="font-size:13px;color:${i===3?'#1a1a1a':'#666'};font-weight:${i===3?500:400}">${l}</div>
             <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:${c}">${v}</div>
           </div>`).join('')}
       </div>
       <div class="card">
-        <div class="section-label">The Rule</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:#666;line-height:1.5">"Eat consistently and<br>don't under-portion."</div>
+        <div class="section-label">Rules</div>
+        ${["Don't skip the add-on meal","Don't under-portion food","Stay consistent for 6 weeks","Increase food slightly if weight doesn't go up"].map((r,i)=>`
+          <div style="display:flex;gap:10px;padding:7px 0;${i<3?'border-bottom:1px solid #f5f0ea':''}">
+            <div style="color:#7ab87a;font-size:14px;flex-shrink:0">✓</div>
+            <div style="font-size:13px;color:#444">${r}</div>
+          </div>`).join('')}
       </div>
     `;
   }
@@ -610,8 +585,223 @@ function renderMealContent() {
 
 function setMealDay(i) { S.meal.activeDay=i; save(); renderMealContent(); }
 function setMealWeek(i) { S.meal.activeWeek=i; S.meal.activeDay=0; save(); renderMealContent(); }
-function togglePrep(i) { S.meal.prepDone[i]=!S.meal.prepDone[i]; save(); renderMealContent(); }
-function clearPrep() { S.meal.prepDone={}; save(); renderMealContent(); }
+function togglePrep(i) { S.prep = S.prep||{}; S.prep.done = S.prep.done||{}; S.prep.done[i]=!S.prep.done[i]; save(); renderPrep(); }
+function clearPrep() { if(S.prep) S.prep.done={}; save(); renderPrep(); }
+
+// ══════════════════════════════════════════════════════════
+// PREP DATA — exact measurements per week
+// ══════════════════════════════════════════════════════════
+const WEEK_PREP = [
+  { week:1, color:'#7ab87a',
+    bowl:{ name:'Chicken Quinoa Bowl', serves:'3 containers',
+      ingredients:['2 lbs chicken breast','1½ cups dry quinoa (yields ~4 cups cooked)','3 medium sweet potatoes, cubed (~3 cups)','2 heads broccoli, cut into florets (~4 cups)','2 tbsp olive oil','1 tsp garlic powder','1 tsp salt','½ tsp black pepper'],
+      steps:[
+        {t:'Preheat oven to 400°F.'},
+        {t:'Cook quinoa: combine 1½ cups quinoa + 3 cups water. Bring to boil, cover, simmer 15 min. Fluff and set aside.',mins:15},
+        {t:'Cube sweet potatoes + cut broccoli. Spread on baking sheet. Toss with 1 tbsp olive oil, salt, pepper. Roast 25–30 min.',mins:28},
+        {t:'Season chicken with garlic powder, salt, pepper. Heat 1 tbsp olive oil in pan. Cook 6–7 min per side until internal temp 165°F.',mins:14},
+        {t:'Rest chicken 5 min, then slice or shred.',mins:5},
+        {t:'Divide into 3 containers: ⅓ chicken + ⅔ cup quinoa + 1 cup veggies each.'},
+        {t:'Add ½ avocado + squeeze lemon day-of. Store containers in fridge up to 4 days.'},
+      ]},
+    salad:{ name:'Salmon Avocado Salad', serves:'2 portions',
+      ingredients:['2 salmon fillets (~6 oz each)','4 cups mixed greens','1 cup cherry tomatoes, halved','1 cucumber, sliced','2 avocados','2 tbsp olive oil','1 tbsp balsamic vinegar','2 tbsp pumpkin seeds or walnuts','Salt & pepper'],
+      steps:[
+        {t:'Preheat oven to 400°F. Season salmon with salt & pepper.'},
+        {t:'Bake salmon on lined tray for 12–15 min until it flakes easily.',mins:13},
+        {t:'Halve cherry tomatoes. Slice cucumber. Store in separate container.'},
+        {t:'Keep greens dry in their own container. Do NOT dress until eating.'},
+        {t:'Day-of assembly: greens + veggies + salmon + ½ avocado. Drizzle 1 tbsp olive oil + ½ tbsp balsamic. Top with seeds.'},
+      ]}},
+  { week:2, color:'#5db89a',
+    bowl:{ name:'Ground Turkey Rice Bowl', serves:'3 containers',
+      ingredients:['2 lbs ground turkey (93% lean)','1½ cups dry brown rice (yields ~4 cups cooked)','3 bell peppers, diced','2 medium onions, diced','2 tbsp olive oil','1 tsp cumin','1 tsp paprika','1 tsp garlic powder','Salt & pepper'],
+      steps:[
+        {t:'Cook brown rice: 1½ cups rice + 3 cups water. Bring to boil, cover, simmer 40–45 min.',mins:43},
+        {t:'Dice peppers and onions.'},
+        {t:'Heat 1 tbsp olive oil in large pan over medium-high. Add onions, cook 3 min. Add peppers, cook 3 more min.',mins:6},
+        {t:'Add ground turkey. Break apart and cook 8–10 min until no pink remains.',mins:9},
+        {t:'Season with cumin, paprika, garlic powder, salt & pepper. Stir and cook 1 more min.',mins:1},
+        {t:'Divide into 3 containers: ⅔ cup rice + generous scoop turkey & veggie mix each.'},
+        {t:'Add ½ avocado day-of. Fridge up to 4 days.'},
+      ]},
+    salad:{ name:'Chicken Salad', serves:'2 portions',
+      ingredients:['1 lb chicken breast','4 cups mixed greens','1 cup cherry tomatoes','1 cucumber, sliced','2 avocados','2 tbsp olive oil','1 tbsp lemon juice','Salt & pepper'],
+      steps:[
+        {t:'Season chicken with salt & pepper. Bake at 400°F for 20 min or pan cook 6–7 min per side.',mins:20},
+        {t:'Rest 5 min, then slice thinly.',mins:5},
+        {t:'Prep tomatoes and cucumber. Store separately from greens.'},
+        {t:'Day-of: greens + veggies + sliced chicken + ½ avocado. Drizzle 1 tbsp olive oil + squeeze lemon.'},
+      ]}},
+  { week:3, color:'#d4a843',
+    bowl:{ name:'Chicken Sweet Potato Bowl', serves:'3 containers',
+      ingredients:['2 lbs chicken breast','1½ cups dry quinoa','3 medium sweet potatoes, cubed','2 heads broccoli, florets','2 tbsp olive oil','1 tsp garlic powder','½ tsp smoked paprika','Salt & pepper'],
+      steps:[
+        {t:'Preheat oven to 400°F. Cook quinoa: 1½ cups + 3 cups water, simmer 15 min.',mins:15},
+        {t:'Cube sweet potatoes + cut broccoli. Toss with 1 tbsp olive oil, salt, paprika. Roast 25–30 min.',mins:28},
+        {t:'Season chicken with garlic powder, salt, pepper. Pan cook 6–7 min per side (165°F internal).',mins:14},
+        {t:'Rest 5 min then slice.',mins:5},
+        {t:'Portion into 3 containers: ⅓ chicken + ⅔ cup quinoa + 1 cup roasted veggies.'},
+        {t:'Add ½ avocado + lemon day-of. Fridge up to 4 days.'},
+      ]},
+    salad:{ name:'Tuna Avocado Salad', serves:'2 portions',
+      ingredients:['2 cans tuna in water (5 oz each), drained','4 cups mixed greens','1 cup cherry tomatoes','1 cucumber, sliced','2 avocados','2 tbsp olive oil','1 tbsp lemon juice','1 tbsp flaxseed (optional)','Salt & pepper'],
+      steps:[
+        {t:'Drain tuna well. Season lightly with salt, pepper, lemon juice.'},
+        {t:'Halve tomatoes, slice cucumber. Store in container.'},
+        {t:'Keep greens separate and dry.'},
+        {t:'Day-of: greens + veggies + tuna + ½ avocado. Drizzle olive oil + lemon. Top with flaxseed if using.'},
+      ]}},
+  { week:4, color:'#e8836a',
+    bowl:{ name:'Ground Beef Quinoa Bowl', serves:'3 containers',
+      ingredients:['2 lbs ground beef (90% lean)','1½ cups dry quinoa','3 bell peppers, diced','2 cups spinach','2 tbsp olive oil','1 tsp garlic powder','1 tsp cumin','Salt & pepper'],
+      steps:[
+        {t:'Cook quinoa: 1½ cups + 3 cups water, boil then simmer 15 min.',mins:15},
+        {t:'Dice peppers. Heat 1 tbsp olive oil in pan. Cook peppers 4 min.',mins:4},
+        {t:'Add ground beef. Cook 8–10 min, breaking apart, until browned.',mins:9},
+        {t:'Add spinach last 2 min until wilted. Season with garlic, cumin, salt, pepper.',mins:2},
+        {t:'Divide into 3 containers: ⅔ cup quinoa + generous beef & veggie scoop each.'},
+        {t:'Add ½ avocado day-of. Fridge up to 3 days (beef cooks faster to eat).'},
+      ]},
+    salad:{ name:'Salmon Salad', serves:'2 portions',
+      ingredients:['2 salmon fillets (~6 oz each)','4 cups mixed greens','1 cucumber, sliced','1 cup cherry tomatoes','2 avocados','2 tbsp olive oil','1 tbsp balsamic vinegar','Salt & pepper'],
+      steps:[
+        {t:'Season salmon with salt & pepper. Bake at 400°F for 12–15 min.',mins:13},
+        {t:'Slice cucumber, halve tomatoes. Store separately.'},
+        {t:'Day-of: greens + veggies + salmon + ½ avocado. Drizzle olive oil + balsamic.'},
+      ]}},
+  { week:5, color:'#8b6bb1',
+    bowl:{ name:'Chicken Rice Bowl', serves:'3 containers',
+      ingredients:['2 lbs chicken breast','1½ cups dry brown rice','2 heads broccoli, florets','1 cup spinach','2 tbsp olive oil','3 cloves garlic, minced','1 tsp salt','½ tsp black pepper'],
+      steps:[
+        {t:'Cook brown rice: 1½ cups + 3 cups water, boil then cover and simmer 40–45 min.',mins:43},
+        {t:'Preheat oven to 400°F. Cut broccoli, toss with 1 tbsp olive oil + salt. Roast 20–25 min.',mins:22},
+        {t:'Heat 1 tbsp olive oil in pan, add minced garlic, cook 1 min. Add chicken, cook 6–7 min per side.',mins:14},
+        {t:'Rest chicken 5 min, slice.',mins:5},
+        {t:'Divide into 3 containers: ⅔ cup rice + ⅓ chicken + broccoli + handful spinach each.'},
+        {t:'Add ½ avocado day-of.'},
+      ]},
+    salad:{ name:'Egg & Avocado Salad', serves:'2 portions',
+      ingredients:['6 large eggs (3 per serving)','4 cups mixed greens','1 cup cherry tomatoes','1 cucumber, sliced','2 avocados','2 tbsp olive oil','1 tbsp lemon juice','Salt & pepper'],
+      steps:[
+        {t:'Hard boil eggs: place in cold water, bring to boil, simmer 8 min, transfer to ice water.',mins:10},
+        {t:'Peel and halve eggs. Store in container.'},
+        {t:'Prep tomatoes and cucumber.'},
+        {t:'Day-of: greens + veggies + 3 eggs + ½ avocado. Drizzle olive oil + lemon. Salt & pepper.'},
+      ]}},
+  { week:6, color:'#c46b7a',
+    bowl:{ name:'Turkey Sweet Potato Bowl', serves:'3 containers',
+      ingredients:['2 lbs ground turkey','1½ cups dry quinoa','3 medium sweet potatoes, cubed','2 cups spinach','2 tbsp olive oil','1 tsp garlic powder','1 tsp cinnamon (small pinch for sweet potato)','Salt & pepper'],
+      steps:[
+        {t:'Cook quinoa: 1½ cups + 3 cups water, simmer 15 min.',mins:15},
+        {t:'Preheat oven to 400°F. Cube sweet potatoes, toss with 1 tbsp olive oil, pinch cinnamon, salt. Roast 25–30 min.',mins:28},
+        {t:'Brown turkey in pan with 1 tbsp olive oil, 8–10 min. Season with garlic, salt, pepper.',mins:9},
+        {t:'Add spinach to turkey last 2 min, stir until wilted.',mins:2},
+        {t:'Portion into 3 containers: ⅔ cup quinoa + turkey mix + sweet potato each.'},
+        {t:'Add ½ avocado + seeds day-of. Fridge up to 4 days.'},
+      ]},
+    salad:{ name:'Chicken Avocado Salad', serves:'2 portions',
+      ingredients:['1 lb chicken breast','4 cups mixed greens','1 cup cherry tomatoes','1 cucumber, sliced','2 avocados','2 tbsp olive oil','1 tbsp lemon juice','2 tbsp pumpkin seeds or walnuts','Salt & pepper'],
+      steps:[
+        {t:'Season chicken, bake at 400°F for 20 min or pan cook 6–7 min per side.',mins:20},
+        {t:'Rest 5 min, slice thinly.',mins:5},
+        {t:'Prep tomatoes and cucumber. Store separately.'},
+        {t:'Day-of: greens + veggies + chicken + ½ avocado + seeds. Drizzle olive oil + lemon.'},
+      ]}},
+];
+
+const STORAGE_TIPS = [
+  ['Bowl containers (protein + carb + veg)','Fridge · up to 4 days'],
+  ['Salmon / fish','Fridge · 2 days max — bake fresh Day 5 if possible'],
+  ['Hard boiled eggs','Fridge · up to 5 days in shell'],
+  ['Greens + tomatoes','Separate container · dress day-of only'],
+  ['Smoothie ingredients','Pre-bag and freeze · blend fresh each morning'],
+];
+
+let prepWeek = 0;
+let prepStepsDone = {};
+
+function renderPrep() {
+  const el = document.getElementById('prep-content');
+  if (!el) return;
+  const w = WEEK_PREP[prepWeek];
+  const wkColor = w.color;
+  prepStepsDone[prepWeek] = prepStepsDone[prepWeek] || {};
+  const sd = prepStepsDone[prepWeek];
+
+  const recipeBlock = (recipe, type, prefix) => {
+    const allSteps = recipe.steps.length;
+    const doneSt = recipe.steps.filter((_,i)=>sd[prefix+i]).length;
+    const pct = Math.round(doneSt/allSteps*100);
+    return `
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600">${recipe.name}</div>
+            <div style="font-size:12px;color:#aaa;margin-top:2px">${type} · ${recipe.serves}</div>
+          </div>
+          <div style="font-size:11px;color:${wkColor};font-weight:500;background:${wkColor}22;padding:3px 10px;border-radius:10px">${pct}%</div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${wkColor}"></div></div>
+
+        <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:8px">INGREDIENTS</div>
+        <div style="margin-bottom:16px">${recipe.ingredients.map(i=>`<span class="chip">${i}</span>`).join('')}</div>
+
+        <div style="font-size:10px;letter-spacing:2px;color:#b0a898;margin-bottom:10px">STEPS</div>
+        ${recipe.steps.map((s,i)=>{
+          const done = !!sd[prefix+i];
+          return `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;opacity:${done?0.5:1}" onclick="togglePrepStep('${prefix}',${i})">
+            <div style="width:22px;height:22px;border-radius:50%;background:${done?wkColor:'#f0ebe4'};color:${done?'white':'#999'};font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.15s">${done?'✓':i+1}</div>
+            <div style="font-size:13px;color:${done?'#bbb':'#444'};line-height:1.55;flex:1;padding-top:2px;cursor:pointer">
+              ${s.t}${s.mins?timerHTML(prefix+'t'+i,s.mins):''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  };
+
+  el.innerHTML = `
+    <!-- Week selector -->
+    <div style="margin-bottom:20px">
+      <div class="section-label">Prep Week</div>
+      <div class="pill-row">
+        ${WEEK_PREP.map((w,i)=>`<button class="pill${prepWeek===i?' active':''}" style="${prepWeek===i?`background:${w.color};border-color:${w.color};color:white`:''}" onclick="setPrepWeek(${i})">Wk ${w.week}</button>`).join('')}
+      </div>
+    </div>
+
+    <!-- Header card -->
+    <div class="card" style="border-left:4px solid ${wkColor};padding:12px 16px;margin-bottom:14px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:${wkColor}">Week ${w.week} · Sunday Prep</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">Cook once · eat well all week</div>
+      <div style="display:flex;gap:16px;margin-top:10px">
+        <div style="font-size:12px;color:#555">🍲 ${w.bowl.name}</div>
+        <div style="font-size:12px;color:#555">🥗 ${w.salad.name}</div>
+      </div>
+    </div>
+
+    ${recipeBlock(w.bowl, '3-Day Bowl', 'b')}
+    ${recipeBlock(w.salad, '2-Day Salad', 's')}
+
+    <!-- Storage tips -->
+    <div class="card">
+      <div class="section-label">🧊 Storage Guide</div>
+      ${STORAGE_TIPS.map(([item,tip],i,a)=>`
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;${i<a.length-1?'border-bottom:1px solid #f5f0ea':''}">
+          <div style="font-size:13px;color:#333;flex:1">${item}</div>
+          <div style="font-size:12px;color:#7ab87a;text-align:right;flex-shrink:0">${tip}</div>
+        </div>`).join('')}
+    </div>
+
+    <div style="text-align:center;margin-bottom:24px;font-size:11px;color:#c8bfb0">Tap each step to mark done</div>
+  `;
+}
+
+function setPrepWeek(i) { prepWeek=i; renderPrep(); }
+function togglePrepStep(prefix, i) {
+  prepStepsDone[prepWeek] = prepStepsDone[prepWeek]||{};
+  prepStepsDone[prepWeek][prefix+i] = !prepStepsDone[prepWeek][prefix+i];
+  renderPrep();
+}
 
 // ══════════════════════════════════════════════════════════
 // RENDER SHOPPING
@@ -981,16 +1171,16 @@ function setActiveSmoothie(i) { activeSmoothie = i; renderRecipes(); }
 function render() {
   if (currentScreen==='workout') renderWorkout();
   else if (currentScreen==='meal') renderMeal();
+  else if (currentScreen==='prep') renderPrep();
   else if (currentScreen==='shop') renderShop();
-  else if (currentScreen==='rotation') renderRotation();
   else if (currentScreen==='recipes') renderRecipes();
 }
 
 // Init all screens once
 renderWorkout();
 renderMealContent();
+renderPrep();
 renderShop();
-renderRotation();
 renderRecipes();
 </script>
 </body>
